@@ -12,11 +12,13 @@ import com.redshifttech.crm.dto.response.RegisterResponse;
 import com.redshifttech.crm.entity.Otp;
 import com.redshifttech.crm.entity.User;
 import com.redshifttech.crm.enums.UserRole;
+import com.redshifttech.crm.exception.DuplicateEmailException;
 import com.redshifttech.crm.repository.OtpRepository;
 import com.redshifttech.crm.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,21 +33,24 @@ public class AuthService {
     private final OtpRepository otpRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional
     public RegisterResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+        String email = request.getEmail().trim().toLowerCase();
+
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateEmailException("An account already exists for this email address");
         }
         User user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .address(request.getAddress())
-                .mobileNumber(request.getMobileNumber())
+                .firstName(request.getFirstName().trim())
+                .lastName(request.getLastName().trim())
+                .email(email)
+                .address(request.getAddress().trim())
+                .mobileNumber(request.getMobileNumber().trim())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .active(true)
                 .build();
-        User savedUser = userRepository.save(user);
+        User savedUser = userRepository.saveAndFlush(user);
         emailService.sendRegistrationSuccessEmail(
                 savedUser.getEmail(),
                 savedUser.getFirstName(),
