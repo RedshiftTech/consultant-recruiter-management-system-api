@@ -1,11 +1,13 @@
 package com.redshifttech.crm.service;
 
 import com.redshifttech.crm.enums.UserRole;
+import com.redshifttech.crm.exception.EmailDeliveryException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,8 +36,8 @@ public class EmailService {
                             "</html>";
             helper.setText(htmlContent, true);
             mailSender.send(message);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send registration success email", e);
+        } catch (MessagingException | MailException e) {
+            throw new EmailDeliveryException("Registration email could not be sent", e);
         }
     }
 
@@ -61,8 +63,8 @@ public class EmailService {
                             "</html>";
             helper.setText(htmlContent, true);
             mailSender.send(message);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send forgot password OTP email", e);
+        } catch (MessagingException | MailException e) {
+            throw new EmailDeliveryException("Password reset email could not be sent", e);
         }
     }
 }

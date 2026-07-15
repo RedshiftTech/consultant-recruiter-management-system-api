@@ -25,3 +25,10 @@ target/
 # virtual machine crash logs
 hs_err_pid*
 replay_pid*
+
+# Eclipse / Spring Tool Suite
+.classpath
+.factorypath
+.project
+.settings/
+**/.metadata/
